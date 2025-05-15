@@ -26,7 +26,7 @@ const router = createRouter({
 })
 
 // Navigation guard
-router.beforeEach(async (to, from) => {
+router.beforeEach(async (to, _from) => {
   if (to.meta.requiresAuth) {
     const authStore = useAuthStore()
     
