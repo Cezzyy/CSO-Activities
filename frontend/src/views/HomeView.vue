@@ -97,10 +97,10 @@ const activeTabComponent = computed(() => {
           <span class="font-bold text-lg tracking-wide text-black">Management</span>
         </div>
         <div class="flex items-center space-x-4">
-          <span class="text-black font-medium">User</span>
-          <button class="p-2 rounded-full hover:bg-black/5">
+          <span class="text-black font-medium">{{ authStore.user?.username || authStore.user?.firstName || 'User' }}</span>
+          <div class="p-2 rounded-full">
             <font-awesome-icon icon="user" class="w-5 h-5 text-black" />
-          </button>
+          </div>
         </div>
       </header>
       <main class="flex-1 p-6 bg-white">
