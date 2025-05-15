@@ -84,11 +84,57 @@ export const useUserStore = defineStore('user', {
     },
     
     getUserByEmail(email: string): User | undefined {
-      return this.users.find(user => user.email === email);
+      
+      // If not found in memory, check localStorage directly
+      const storedUsers = localStorage.getItem('users');
+      if (storedUsers) {
+        try {
+          const parsedUsers = JSON.parse(storedUsers);
+          const foundUser = parsedUsers.find((user: any) => user.email === email);
+          
+          if (foundUser) {
+            // Update the in-memory users array with all users from localStorage
+            this.initializeUsers();
+            // Return the found user with Date objects
+            return {
+              ...foundUser,
+              createdAt: new Date(foundUser.createdAt),
+              updatedAt: new Date(foundUser.updatedAt)
+            };
+          }
+        } catch (err) {
+          console.error('Failed to parse stored users:', err);
+        }
+      }
+      
+      return undefined;
     },
     
     getUserById(id: string): User | undefined {
-      return this.users.find(user => user.id === id);
+      
+      // If not found in memory, check localStorage directly
+      const storedUsers = localStorage.getItem('users');
+      if (storedUsers) {
+        try {
+          const parsedUsers = JSON.parse(storedUsers);
+          const foundUser = parsedUsers.find((user: any) => user.id === id);
+          
+          if (foundUser) {
+            // Update the in-memory users array with all users from localStorage
+            this.initializeUsers();
+            // Return the found user with Date objects
+            return {
+              ...foundUser,
+              createdAt: new Date(foundUser.createdAt),
+              updatedAt: new Date(foundUser.updatedAt)
+            };
+          }
+        } catch (err) {
+          console.error('Failed to parse stored users:', err);
+        }
+      }
+      
+      return undefined;
     }
   }
 }); 
