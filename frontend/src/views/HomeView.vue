@@ -105,7 +105,7 @@ const activeTabComponent = computed(() => {
       </header>
       <main class="flex-1 p-6 bg-white">
         <h2 class="text-2xl font-semibold text-black mb-6">{{ activeTab }}</h2>
-        <component :is="activeTabComponent" />
+        <component :is="activeTabComponent" :key="activeTab" />
       </main>
     </div>
   </div>
