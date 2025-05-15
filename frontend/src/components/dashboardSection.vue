@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { useCustomerStore } from '../stores/customerStore';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, BarElement } from 'chart.js';
 import { Line } from 'vue-chartjs';
@@ -10,16 +10,28 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 // Get customer store
 const customerStore = useCustomerStore();
 
-// Chart data
+// Function to get days in current month
+const getDaysInCurrentMonth = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  // Get the number of days in the current month
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  
+  // Generate array of day labels (1-31)
+  return Array.from({ length: daysInMonth }, (_, i) => `${i + 1}`);
+};
+
+// Chart data - use current month days as labels
 const chartData = ref({
-  labels: ['Dec 2023', 'Jan 2024', 'Feb 2024', 'Mar 2024', 'Apr 2024', 'May 2024'] as string[],
+  labels: getDaysInCurrentMonth(),
   datasets: [
     {
       label: 'Customer Growth',
       backgroundColor: 'rgba(0, 0, 0, 0.1)',
       borderColor: '#000',
       borderWidth: 2,
-      data: [0, 0, 0, 0, 0, 0] as number[]
+      data: Array(getDaysInCurrentMonth().length).fill(0) // Initialize with zeros
     }
   ]
 });
@@ -40,33 +52,59 @@ const chartOptions = {
     legend: {
       display: true,
       position: 'top' as const
+    },
+    title: {
+      display: true,
+      text: `Customer Growth - ${new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}`,
+      font: {
+        size: 16
+      }
     }
   }
 };
 
 // Check if data is empty
 const hasCustomerData = computed(() => {
-  return customerStore.customersByMonth && 
-         customerStore.customersByMonth.length > 0 && 
-         customerStore.customersByMonth.some(item => item.count > 0);
+  return customerStore.customers.length > 0;
 });
 
 // Update chart data when component is mounted
 onMounted(async () => {
   try {
+    customerStore.initializeCustomers();
     await customerStore.getCustomers();
     updateChartData();
+    console.log('Dashboard mounted, customers loaded:', customerStore.customers.length);
   } catch (error) {
     console.error('Failed to fetch customer data:', error);
   }
 });
 
-// Update chart data from store
+// Watch for changes in the customers array and update chart
+watch(() => customerStore.customers, () => {
+  updateChartData();
+  console.log('Customers changed, updating chart with', customerStore.customers.length, 'customers');
+}, { deep: true });
+
 const updateChartData = () => {
-  if (customerStore.customersByMonth && customerStore.customersByMonth.length > 0) {
-    chartData.value.labels = customerStore.customersByMonth.map(item => item.month);
-    chartData.value.datasets[0].data = customerStore.customersByMonth.map(item => item.count);
-  }
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+  
+
+  const daysInMonth = getDaysInCurrentMonth().length;
+  const dailyCounts = Array(daysInMonth).fill(0);
+  
+  customerStore.customers.forEach(customer => {
+    const createdAt = new Date(customer.createdAt);
+    if (createdAt.getFullYear() === currentYear && createdAt.getMonth() === currentMonth) {
+      const dayOfMonth = createdAt.getDate();
+      dailyCounts[dayOfMonth - 1]++;
+    }
+  });
+  
+  // Update chart data
+  chartData.value.datasets[0].data = dailyCounts;
 };
 </script>
 
@@ -92,7 +130,7 @@ const updateChartData = () => {
       <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
         <h3 class="font-medium text-gray-900 flex items-center">
           <font-awesome-icon icon="chart-line" class="mr-2" />
-          Customer Growth
+          Customer Growth (Current Month)
         </h3>
       </div>
       <div class="p-6" style="height: 300px;">
@@ -109,7 +147,7 @@ const updateChartData = () => {
           <div class="text-center max-w-md">
             <font-awesome-icon icon="chart-line" class="text-4xl text-gray-300 mb-3" />
             <h4 class="text-lg font-medium text-gray-700 mb-1">No customer growth data</h4>
-            <p class="text-gray-500 text-sm">Add more customers to see growth trends over time. Customer data will be displayed in this chart as your customer base grows.</p>
+            <p class="text-gray-500 text-sm">Add more customers to see growth trends for the current month. Customer data will be displayed in this chart as your customer base grows.</p>
           </div>
         </div>
         
