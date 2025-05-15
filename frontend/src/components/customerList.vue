@@ -7,6 +7,7 @@ import { Customer } from '../types/customer';
 const AddCustomerModal = defineAsyncComponent(() => import('./AddCustomerModal.vue'));
 const EditCustomerModal = defineAsyncComponent(() => import('./EditCustomerModal.vue'));
 const DeleteCustomerModal = defineAsyncComponent(() => import('./DeleteCustomerModal.vue'));
+const ViewCustomerModal = defineAsyncComponent(() => import('./ViewCustomerModal.vue'));
 
 const customerStore = useCustomerStore();
 
@@ -14,6 +15,7 @@ const customerStore = useCustomerStore();
 const showAddModal = ref(false);
 const showEditModal = ref(false);
 const showDeleteModal = ref(false);
+const showViewModal = ref(false);
 const selectedCustomer = ref<Customer | null>(null);
 const selectedCustomerId = ref<string | null>(null);
 
@@ -35,14 +37,16 @@ const getStatusIcon = (status: string) => {
   switch (status) {
     case 'Active': return 'check';
     case 'Inactive': return 'times';
-    case 'Pending': return 'clock';
     default: return 'circle';
   }
 };
 
 // Load customers on component mount
 onMounted(async () => {
+  // Ensure we load data from localStorage first
+  customerStore.initializeCustomers();
   await customerStore.getCustomers();
+  console.log('Customer list mounted, customers loaded:', customerStore.customers.length);
 });
 
 // Modal handlers
@@ -60,6 +64,11 @@ const openDeleteModal = (id: string) => {
   showDeleteModal.value = true;
 };
 
+const openViewModal = (customer: Customer) => {
+  selectedCustomer.value = customer;
+  showViewModal.value = true;
+};
+
 const closeAddModal = () => {
   showAddModal.value = false;
 };
@@ -72,6 +81,11 @@ const closeEditModal = () => {
 const closeDeleteModal = () => {
   showDeleteModal.value = false;
   selectedCustomerId.value = null;
+};
+
+const closeViewModal = () => {
+  showViewModal.value = false;
+  selectedCustomer.value = null;
 };
 </script>
 
@@ -173,8 +187,7 @@ const closeDeleteModal = () => {
                   class="w-2 h-2 rounded-full mr-2"
                   :class="{
                     'bg-black': customer.status === 'Active',
-                    'bg-gray-300': customer.status === 'Inactive',
-                    'bg-gray-500': customer.status === 'Pending'
+                    'bg-gray-300': customer.status === 'Inactive'
                   }"
                 ></span>
                 <span class="text-gray-700">
@@ -186,14 +199,23 @@ const closeDeleteModal = () => {
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium" data-label="Actions">
               <div class="flex space-x-3">
                 <button 
+                  @click="openViewModal(customer)"
+                  class="text-gray-600 hover:text-black transition-colors"
+                  title="View customer"
+                >
+                  <font-awesome-icon icon="eye" />
+                </button>
+                <button 
                   @click="openEditModal(customer)"
                   class="text-gray-600 hover:text-black transition-colors"
+                  title="Edit customer"
                 >
                   <font-awesome-icon icon="edit" />
                 </button>
                 <button 
                   @click="openDeleteModal(customer.id)"
                   class="text-gray-600 hover:text-red-600 transition-colors"
+                  title="Delete customer"
                 >
                   <font-awesome-icon icon="trash-alt" />
                 </button>
@@ -223,6 +245,7 @@ const closeDeleteModal = () => {
   <AddCustomerModal :show="showAddModal" @close="closeAddModal" />
   <EditCustomerModal :show="showEditModal" :customer="selectedCustomer" @close="closeEditModal" />
   <DeleteCustomerModal :show="showDeleteModal" :customerId="selectedCustomerId" @close="closeDeleteModal" />
+  <ViewCustomerModal :show="showViewModal" :customer="selectedCustomer" @close="closeViewModal" />
 </template>
 
 <style scoped>

@@ -2,7 +2,7 @@ export interface Customer {
   id: string;
   name: string;
   email: string;
-  status: 'Active' | 'Inactive' | 'Pending';
+  status: 'Active' | 'Inactive' ;
   createdAt: Date;
   updatedAt: Date;
   notes?: string;
@@ -13,7 +13,7 @@ export interface Customer {
 export interface CustomerCreate {
   name: string;
   email: string;
-  status: 'Active' | 'Inactive' | 'Pending';
+  status: 'Active' | 'Inactive' ;
   notes?: string;
   contactNumber?: string;
   company?: string;
@@ -23,7 +23,7 @@ export interface CustomerUpdate {
   id: string;
   name?: string;
   email?: string;
-  status?: 'Active' | 'Inactive' | 'Pending';
+  status?: 'Active' | 'Inactive' ;
   notes?: string;
   contactNumber?: string;
   company?: string;

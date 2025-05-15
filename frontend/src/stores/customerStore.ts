@@ -12,7 +12,6 @@ export const useCustomerStore = defineStore('customer', {
     totalCustomers: (state) => state.customers.length,
     activeCustomers: (state) => state.customers.filter(c => c.status === 'Active').length,
     inactiveCustomers: (state) => state.customers.filter(c => c.status === 'Inactive').length,
-    pendingCustomers: (state) => state.customers.filter(c => c.status === 'Pending').length,
     
     // Get customer data grouped by month for charts
     customersByMonth: (state) => {
@@ -48,10 +47,12 @@ export const useCustomerStore = defineStore('customer', {
     // Helper to save customers to localStorage
     saveToLocalStorage() {
       localStorage.setItem('customers', JSON.stringify(this.customers));
+      console.log('Saved customers to localStorage:', this.customers.length);
     },
     
     // Initialize customers from localStorage if available
     initializeCustomers() {
+      console.log('Initializing customers from localStorage');
       const storedCustomers = localStorage.getItem('customers');
       if (storedCustomers) {
         try {
@@ -62,6 +63,7 @@ export const useCustomerStore = defineStore('customer', {
             createdAt: new Date(customer.createdAt),
             updatedAt: new Date(customer.updatedAt)
           }));
+          console.log('Successfully loaded', this.customers.length, 'customers from localStorage');
         } catch (err) {
           console.error('Failed to parse stored customers:', err);
           this.customers = [];
@@ -70,6 +72,7 @@ export const useCustomerStore = defineStore('customer', {
         // Initialize with an empty array instead of sample data
         this.customers = [];
         this.saveToLocalStorage();
+        console.log('No customers found in localStorage, initialized empty array');
       }
     },
     
